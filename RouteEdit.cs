@@ -28,6 +28,7 @@ public static class RouteEdit
         // Store reference cities and params
         byte vehicleState = vehicle.Route.Loading ? (byte)1 : (byte)0;
         decimal progress = vehicle.Route.GetPrivateField<decimal>("progress");
+        int distance = vehicle.Route.Distance; // this will be used to calculate refunds
         CityUser current = vehicle.Route.Current;
         CityUser destination = vehicle.Route.Destination;
 
@@ -38,21 +39,15 @@ public static class RouteEdit
         if (vehicle != null && hub != null && !vehicle.Destroyed && vehicle.Company == __instance.Company)
         {
             //__instance.Vehicle.ChangeRoute(__instance.GetPrivateField<NewRouteSettings>("settings"), _hub, scene);
-            Company _company = __instance.Vehicle.GetCompany(scene);
-            if (!vehicle.Route.Loading)
-            {
-                __instance.Vehicle.Passengers.RemoveAndRefund(vehicle.Route, _company);
-            }
-            else
-            {
-                __instance.Vehicle.Passengers.RemovePassengers();
-            }
+            //Company _company = __instance.Vehicle.GetCompany(scene);
+            //if (!vehicle.Route.Loading)
+                //__instance.Vehicle.Passengers.RemoveAndRefund(vehicle.Route, _company);
+            //else
+                //__instance.Vehicle.Passengers.RemovePassengers();
 
             long _import = __instance.Vehicle.GetImportCost(scene.Cities[hub.City].User, scene);
             if (_import > 0)
-            {
-                _company.AddExpense(_import, vehicle);
-            }
+                vehicle.GetCompany(scene).AddExpense(_import, vehicle);
 
             __instance.Vehicle.Route.Destroy();
             //Route = new RouteInstance(new Route(settings), __instance.Vehicle, scene);
@@ -137,6 +132,21 @@ public static class RouteEdit
         destId = vehicle.Route.CallPrivateMethod<int>("GetNext", []);
         Log.Write($"Success: {current.Name}/{destination.Name} => {currentId}.{newCurrent.Name}/{destId}.{route.Cities[destId].Name}");
 
+        // Passengers clean-up
+        VehiclePassengers passengers = vehicle.Passengers;
+        if (vehicle.Route.Loading) // when loading, just remove
+        {
+            for (int i = passengers.Items.Count - 1; i >= 0; i--)
+                if (!vehicle.Route.Instructions.Contains(passengers.Items[i].Next.User))
+                    passengers.RemovePassengers(i);
+        }
+        else // when moving, remove and refund
+        {
+            for (int i = passengers.Items.Count - 1; i >= 0; i--)
+                if (!vehicle.Route.Instructions.Contains(passengers.Items[i].Next.User))
+                    passengers.RemoveAndRefund(i, vehicle, distance, company);
+        }
+
         return false;
     }
 
@@ -159,6 +169,16 @@ public static class RouteEdit
         return route.Cities
             .Where(c => c != exclude && (!ports || c.Sea != null))
             .MinBy(c => GameScene.GetDistance(c, city));
+    }
+
+
+    public static void RemoveAndRefund(this VehiclePassengers passengers, int id, VehicleBaseUser vehicle, int distance, Company company)
+    {
+        Log.Write($"...removing {passengers.Items[id].People} passengers using {passengers.Items[id].Next.User.Name}");
+        decimal _price = passengers.Items[id].demand_price * (decimal)passengers.Items[id].People;
+        long nextTripPrice = (long)(_price * (decimal)vehicle.Entity_base.Passenger_pay_per_km * (decimal)distance);
+        company.AddExpense(-nextTripPrice, vehicle);
+        passengers.RemovePassengers(id);
     }
 }
 
