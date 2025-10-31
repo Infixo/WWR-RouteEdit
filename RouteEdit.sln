@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.14.36511.14
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RouteEdit", "RouteEdit.csproj", "{0281352A-2A21-4906-A6E5-2EC2916932D2}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "WWR-Utilities", "..\WWR-Utilities\WWR-Utilities.shproj", "{C795BFEA-4839-44DD-A100-DB17E03C49AA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0281352A-2A21-4906-A6E5-2EC2916932D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0281352A-2A21-4906-A6E5-2EC2916932D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0281352A-2A21-4906-A6E5-2EC2916932D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0281352A-2A21-4906-A6E5-2EC2916932D2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {CA1EC90B-5D7B-493C-B06E-D087EC760AF3}
+	EndGlobalSection
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		..\WWR-Utilities\WWR-Utilities.projitems*{0281352a-2a21-4906-a6e5-2ec2916932d2}*SharedItemsImports = 5
+		..\WWR-Utilities\WWR-Utilities.projitems*{c795bfea-4839-44dd-a100-db17e03c49aa}*SharedItemsImports = 13
+	EndGlobalSection
+EndGlobal
