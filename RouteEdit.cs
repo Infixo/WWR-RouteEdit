@@ -4,13 +4,6 @@ using HarmonyLib;
 using STM.GameWorld;
 using STM.GameWorld.Commands;
 using STM.GameWorld.Users;
-using STMG.Engine;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.WebSockets;
-using System.Text;
-using System.Threading.Tasks;
 using Utilities;
 
 namespace RouteEdit;
@@ -32,8 +25,9 @@ public static class RouteEdit
         VehicleBaseUser vehicle = __instance.Vehicle;
         NewRouteSettings settings = __instance.GetPrivateField<NewRouteSettings>("settings");
 
-        // Store reference cities
+        // Store reference cities and params
         byte vehicleState = vehicle.Route.Loading ? (byte)1 : (byte)0;
+        decimal progress = vehicle.Route.GetPrivateField<decimal>("progress");
         CityUser current = vehicle.Route.Current;
         CityUser destination = vehicle.Route.Destination;
 
@@ -62,7 +56,10 @@ public static class RouteEdit
 
             __instance.Vehicle.Route.Destroy();
             //Route = new RouteInstance(new Route(settings), __instance.Vehicle, scene);
-            vehicle.SetPublicProperty("Route", new RouteInstance(new Route(settings), vehicle, scene)); // this attaches a new route instance to required cities
+            vehicle.SetPublicProperty("Route", new RouteInstance(new Route(settings), vehicle, scene)); // this attaches a new route instance to required cities...
+            // ...and also "registers" a vehicle in the first city...
+            //vehicle.Route.Current.Vehicles.Remove(vehicle); // ...so it needs to be removed from there
+            vehicle.Route.RemoveFromCity();
 
             // Move to a new hub if changed
             if (__instance.Vehicle.Hub != hub)
@@ -90,11 +87,13 @@ public static class RouteEdit
         if (newCurrent == null)
         {
             Log.Write($"No replacement for the current city {current.Name}.");
+            vehicle!.Route.AddToCity();
             return false;
         }
         if (newCurrent != current && WorldwideRushExtensions.GetDistance(newCurrent, current, vehicle!.Entity_base.Type_name) == 0)
         {
             Log.Write($"There is no road/rails/sea path between {current.Name} and {newCurrent.Name}.");
+            vehicle!.Route.AddToCity();
             return false;
         }
 
@@ -102,6 +101,7 @@ public static class RouteEdit
         if (newDestination == null)
         {
             Log.Write($"No replacement for the destination city {current.Name}.");
+            vehicle!.Route.AddToCity();
             return false;
         }
 
@@ -122,9 +122,20 @@ public static class RouteEdit
         // set new params
         vehicle.Route.SetCurrent(currentId, lastId);
         vehicle.Route.SetPrivateField("state", vehicleState);
+        if (vehicle.Route.Loading) vehicle.Route.AddToCity(); // this makes sure that vehicle is IN the city to continue loading
+        vehicle.Route.CallPrivateMethodVoid("GetNextDistance", [scene]);
+        if (vehicle.Route.Moving)
+        {
+            if ((decimal)vehicle.Route.Distance < progress) progress = (decimal)(vehicle.Route.Distance - 1); // just for safety
+            vehicle.Route.SetPrivateField("progress", progress);
+            if (vehicle is RoadVehicleUser || vehicle is TrainUser)
+                vehicle.GetPrivateField<RoadRoute>("route").Move(progress); // this puts the vehicle at the same distance it travelled previously
+            else if (vehicle is ShipUser)
+                vehicle.GetPrivateField<SeaRoute>("route").Move(progress);
+        }
 
         destId = vehicle.Route.CallPrivateMethod<int>("GetNext", []);
-        Log.Write($"Success. Changed {current.Name}/{destination.Name} => {currentId}.{newCurrent.Name}/{destId}.{route.Cities[destId].Name}");
+        Log.Write($"Success: {current.Name}/{destination.Name} => {currentId}.{newCurrent.Name}/{destId}.{route.Cities[destId].Name}");
 
         return false;
     }
