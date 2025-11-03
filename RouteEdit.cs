@@ -20,6 +20,12 @@ public static class RouteEdit
             Log.Write("Warning! Hub is null!");
             return false;
         }
+        // 2025-11-03 Possible crash when it's been sold in the meantime
+        if (__instance.Vehicle == null || __instance.Vehicle.Destroyed)
+        {
+            Log.Write("Warning! Vehicle is already sold or destroyed! Skipping.");
+            return false;
+        }
 
         // Command fields
         VehicleBaseUser vehicle = __instance.Vehicle;
@@ -36,37 +42,30 @@ public static class RouteEdit
         Company company = scene.Session.Companies[__instance.Company];
         company.Line_manager.RemoveVehicle(__instance.Vehicle);
 
-        if (vehicle != null && hub != null && !vehicle.Destroyed && vehicle.Company == __instance.Company)
+        if (vehicle == null || hub == null || vehicle.Destroyed || vehicle.Company != __instance.Company)
         {
-            //__instance.Vehicle.ChangeRoute(__instance.GetPrivateField<NewRouteSettings>("settings"), _hub, scene);
-            //Company _company = __instance.Vehicle.GetCompany(scene);
-            //if (!vehicle.Route.Loading)
-                //__instance.Vehicle.Passengers.RemoveAndRefund(vehicle.Route, _company);
-            //else
-                //__instance.Vehicle.Passengers.RemovePassengers();
-
-            long _import = __instance.Vehicle.GetImportCost(scene.Cities[hub.City].User, scene);
-            if (_import > 0)
-                vehicle.GetCompany(scene).AddExpense(_import, vehicle);
-
-            __instance.Vehicle.Route.Destroy();
-            //Route = new RouteInstance(new Route(settings), __instance.Vehicle, scene);
-            vehicle.SetPublicProperty("Route", new RouteInstance(new Route(settings), vehicle, scene)); // this attaches a new route instance to required cities...
-            // ...and also "registers" a vehicle in the first city...
-            //vehicle.Route.Current.Vehicles.Remove(vehicle); // ...so it needs to be removed from there
-            vehicle.Route.RemoveFromCity();
-
-            // Move to a new hub if changed
-            if (__instance.Vehicle.Hub != hub)
-            {
-                vehicle.Hub.Vehicles.Remove(vehicle);
-                vehicle.SetPublicProperty("Hub", hub);
-                vehicle.Hub.Vehicles.Add(vehicle);
-            }
-
-        }
-        else
             Log.Write($"Warning! Logic issue in command apply! v={vehicle} h={hub} d={vehicle?.Destroyed} c={vehicle?.Company}");
+            return false;
+        }
+
+        long _import = __instance.Vehicle.GetImportCost(scene.Cities[hub.City].User, scene);
+        if (_import > 0)
+            vehicle.GetCompany(scene).AddExpense(_import, vehicle);
+
+        __instance.Vehicle.Route.Destroy();
+        //Route = new RouteInstance(new Route(settings), __instance.Vehicle, scene);
+        vehicle.SetPublicProperty("Route", new RouteInstance(new Route(settings), vehicle, scene)); // this attaches a new route instance to required cities...
+        // ...and also "registers" a vehicle in the first city...
+        //vehicle.Route.Current.Vehicles.Remove(vehicle); // ...so it needs to be removed from there
+        vehicle.Route.RemoveFromCity();
+
+        // Move to a new hub if changed
+        if (__instance.Vehicle.Hub != hub)
+        {
+            vehicle.Hub.Vehicles.Remove(vehicle);
+            vehicle.SetPublicProperty("Hub", hub);
+            vehicle.Hub.Vehicles.Add(vehicle);
+        }
 
         // TODO: This will create a new line if for some reason the currently edited line cannot be used!
         company.Line_manager.AddVehicleToLine(vehicle, scene);
