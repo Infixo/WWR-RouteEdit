@@ -116,14 +116,23 @@ public static class RouteEdit
         // set new params
         vehicle.Route.SetCurrent(currentId, lastId);
         vehicle.Route.SetPrivateField("state", vehicleState);
-        if (vehicle.Route.Loading) vehicle.Route.AddToCity(); // this makes sure that vehicle is IN the city to continue loading
         vehicle.Route.CallPrivateMethodVoid("GetNextDistance", [scene]);
-        if (vehicle.Route.Moving)
+        if (vehicle.Route.Loading) vehicle.Route.AddToCity(); // this makes sure that vehicle is IN the city to continue loading
+        else // vehicle.Route.Moving
         {
-            if ((decimal)vehicle.Route.Distance < progress) progress = (decimal)(vehicle.Route.Distance - 1); // just for safety
+            // 2025-11-03 Adjust for additional stops in-betwen
+            while (progress > (decimal)vehicle.Route.Distance)
+            {
+                progress -= (decimal)vehicle.Route.Distance; // travel to the next stop
+                RouteCycle temp = vehicle.Route.Cycle; // cycle +1 - complex because it is a struct and Move cannot be called on a copy returned by a property
+                temp.Move(route);
+                vehicle.Route.SetCurrent(temp.Current, temp.Last);
+                vehicle.Route.CallPrivateMethodVoid("GetNextDistance", [scene]); // get next distance
+            }
+            // This places the vehicle on the physical path at progress
             vehicle.Route.SetPrivateField("progress", progress);
             if (vehicle is RoadVehicleUser || vehicle is TrainUser)
-                vehicle.GetPrivateField<RoadRoute>("route").Move(progress); // this puts the vehicle at the same distance it travelled previously
+                vehicle.GetPrivateField<RoadRoute>("route").Move(progress);
             else if (vehicle is ShipUser)
                 vehicle.GetPrivateField<SeaRoute>("route").Move(progress);
         }
