@@ -24,6 +24,8 @@ After editing a line, vehicles will continue their way to the next destination. 
 - None atm.
 
 ### Changelog
+- v1.0.0 (2025-11-05)
+  - Better placement of vehicles when adding mid-stops.
 - v0.9.1 (2025-11-03)
   - Added extra check to make sure the vehicle is not sold or destroyed between edit confirmation and command execution.
 - v0.9.0 (2025-10-31)
