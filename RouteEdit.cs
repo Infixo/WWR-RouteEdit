@@ -138,7 +138,7 @@ public static class RouteEdit
         }
 
         destId = vehicle.Route.CallPrivateMethod<int>("GetNext", []);
-        Log.Write($"Success: {current.Name}/{destination.Name} => {currentId}.{newCurrent.Name}/{destId}.{route.Cities[destId].Name}");
+        //Log.Write($"Success: {current.Name}/{destination.Name} => {currentId}.{newCurrent.Name}/{destId}.{route.Cities[destId].Name}");
 
         // Passengers clean-up
         VehiclePassengers passengers = vehicle.Passengers;
@@ -182,7 +182,7 @@ public static class RouteEdit
 
     public static void RemoveAndRefund(this VehiclePassengers passengers, int id, VehicleBaseUser vehicle, int distance, Company company)
     {
-        Log.Write($"...removing {passengers.Items[id].People} passengers using {passengers.Items[id].Next.User.Name}");
+        //Log.Write($"...removing {passengers.Items[id].People} passengers using {passengers.Items[id].Next.User.Name}");
         decimal _price = passengers.Items[id].demand_price * (decimal)passengers.Items[id].People;
         long nextTripPrice = (long)(_price * (decimal)vehicle.Entity_base.Passenger_pay_per_km * (decimal)distance);
         company.AddExpense(-nextTripPrice, vehicle);

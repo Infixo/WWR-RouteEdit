@@ -24,6 +24,8 @@ After editing a line, vehicles will continue their way to the next destination. 
 - None atm.
 
 ### Changelog
+- v1.0.1 (2025-11-06)
+  - Removed redundant logging.
 - v1.0.0 (2025-11-05)
   - Better placement of vehicles when adding mid-stops.
 - v0.9.1 (2025-11-03)
