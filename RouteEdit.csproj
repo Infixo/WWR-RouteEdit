@@ -7,14 +7,15 @@
     <SupportedOSPlatformVersion>7.0</SupportedOSPlatformVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Product>WWR RouteEdit</Product>
-    <InformationalVersion>1.0.1</InformationalVersion>
-    <AssemblyVersion>1.0.1</AssemblyVersion>
-    <FileVersion>1.0.1</FileVersion>
+    <InformationalVersion>1.0.2</InformationalVersion>
+    <AssemblyVersion>1.0.2</AssemblyVersion>
+    <FileVersion>1.0.2</FileVersion>
     <Copyright>Copyright (C) 2025 Infixo</Copyright>
   </PropertyGroup>
   
   <ItemGroup>
     <PackageReference Include="Lib.Harmony" Version="2.4.1" />
+    <PackageReference Include="System.Reflection.Metadata" Version="8.0.1" />
   </ItemGroup>
   
   <PropertyGroup>
